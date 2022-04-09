@@ -163,10 +163,26 @@ Mat combine_both_img(Mat hls, Mat lab)
 Mat normalize_HLS_L(Mat unWarp)
 {
     /* normalizing L color channel pixel from hls img. */
-    Mat imgHLS_L, imgNormal, imgOut2;
+    Mat imgHLS_L, imgNormal;
     double minVal, maxVal;
     Point minLoc, maxLoc;
-    int lowThres = 170; // origin : 200
+
+    Scalar mean_color1 = IMG_mean(unWarp, unWarp.rows * 3 / 5, unWarp.rows * 1/ 5, unWarp.cols * 1 / 7, unWarp.cols / 7);
+	Scalar mean_color2 = IMG_mean(unWarp, unWarp.rows * 3 / 5, unWarp.rows * 1/ 5, unWarp.cols * 4 / 7, unWarp.cols * 1 / 7);
+    Scalar mean_color3 = IMG_mean(unWarp, unWarp.rows * 1 / 7 ,unWarp.rows * 1/ 7 , unWarp.cols * 1/ 7, unWarp.cols * 1/7);
+
+    int mean_thres = (mean_color1[1] + mean_color2[1]+ mean_color3[1]) /3 +10;
+    
+    int lowThres; // origin : 200
+
+    if (mean_thres < 157){
+        lowThres = 165; 
+    }
+    else{
+        lowThres = mean_thres;
+    }
+
+    printf("%d",lowThres);
     
     // get a single channel img(filtered one.)
     imgHLS_L = filterImg(unWarp, 0, 1);
@@ -175,17 +191,17 @@ Mat normalize_HLS_L(Mat unWarp)
     minMaxLoc(imgHLS_L, &minVal, &maxVal, &minLoc, &maxLoc);
 
     // make normalized img.
-    imgNormal = (255 / maxVal) * imgHLS_L;
+    imgNormal = (255 / maxVal)* imgHLS_L;
     
     // imshow("normalimg",imgNormal);
     // apply threshold for L channel.
     Mat imgOut = make_zeros(imgNormal);
+    // Mat imgOut2 = make_zeros(imgNormal);
 
     threshold(imgNormal, imgOut, lowThres, 255, THRESH_BINARY);
-    
+    // threshold(imgNormal, imgOut2,0,255,THRESH_BINARY|THRESH_TRIANGLE);
     // 적응형 이진화
-    adaptiveThreshold(imgOut, imgOut2, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 3, 5);
-
+    
     return imgOut;
 }
 
@@ -429,13 +445,13 @@ Mat mask_filter(Mat img, int _mask_w, int _mask_h, int thresh)
 
 Mat preprocessing(Mat img, Mat img_warp){
 	// cerr << "1-----------------"<<endl;
-	Mat img_warp_clone,img_warp_clone_hls;
+	Mat img_warp_clone,img_warp_clone_hls,img_show;
 
 	Mat white = Mat::zeros(480, 640, img_warp.type());
     rectangle(white, Rect(0, 450, 30, 30), Scalar(250, 250, 250), -1);
 	//imshow("11", white);
 	img_warp_clone = img_warp.clone();
-
+    img_show = img_warp.clone();
 	img_warp_clone_hls = img_warp_clone.clone();
 	
 	Mat img_warp_clone_hls_white= img_warp_clone_hls + white;
@@ -456,13 +472,16 @@ Mat preprocessing(Mat img, Mat img_warp){
 
 	// rectangle(img, Rect(Point(img_warp.cols * 1 / 5, img_warp.rows * 3 / 5), Point(img_warp.cols * 2 / 5, img_warp.rows * 4 / 5)), Scalar(0, 0, 255), 1, 8, 0); // why one?
 	// rectangle(img, Rect(Point(img_warp.cols * 3 / 5, img_warp.rows * 3 / 5), Point(img_warp.cols * 4 / 5, img_warp.rows * 4 / 5)), Scalar(0, 0, 255), 1, 8, 0);
-	// rectangle(img, Rect(Point(img_warp.cols * 1 / 7, img_warp.rows * 3 / 5), Point(img_warp.cols * 2 / 7, img_warp.rows * 4 / 5)), Scalar(0, 0, 255), 1, 8, 0); // why one?
-	// rectangle(img, Rect(Point(img_warp.cols * 4 / 7, img_warp.rows * 3 / 5), Point(img_warp.cols * 5 / 7, img_warp.rows * 4 / 5)), Scalar(0, 0, 255), 1, 8, 0);
-	// imshow("img_warp_color_mean", img); // 색 평균 영역 설정
+	rectangle(img_show, Rect(Point(img_warp.cols * 1 / 7, img_warp.rows * 3 / 5), Point(img_warp.cols * 2 / 7, img_warp.rows * 4 / 5)), Scalar(0, 0, 255), 1, 8, 0); // why one?
+	rectangle(img_show, Rect(Point(img_warp.cols * 4 / 7, img_warp.rows * 3 / 5), Point(img_warp.cols * 5 / 7, img_warp.rows * 4 / 5)), Scalar(0, 0, 255), 1, 8, 0);
+    rectangle(img_show, Rect(Point(img_warp.cols * 1 / 2- 30 , img_warp.rows * 1 / 7), Point(img_warp.cols * 1/2 +30 , img_warp.rows * 2/7)), Scalar(0, 0, 255), 1, 8, 0);
+	// unWarp.rows * 1 / 7 ,unWarp.rows * 1/ 7 , unWarp.cols * 1/ 2, unWarp.cols * 1/5
+    
+    imshow("img_warp_color_mean", img_show); // 색 평균 영역 설정
 
 	// // ----------------------------------------------------INTEGRATE_EXP----------------------------------------------------
-	Scalar mean_color1 = IMG_mean(img_warp, img_warp.rows * 3 / 5, img_warp.rows * 1/ 5, img_warp.cols * 1 / 7, img_warp.cols / 7);
-	Scalar mean_color2 = IMG_mean(img_warp, img_warp.rows * 3 / 5, img_warp.rows * 1/ 5, img_warp.cols * 4 / 7, img_warp.cols * 1 / 7);
+	// Scalar mean_color1 = IMG_mean(img_warp, img_warp.rows * 3 / 5, img_warp.rows * 1/ 5, img_warp.cols * 1 / 7, img_warp.cols / 7);
+	// Scalar mean_color2 = IMG_mean(img_warp, img_warp.rows * 3 / 5, img_warp.rows * 1/ 5, img_warp.cols * 4 / 7, img_warp.cols * 1 / 7);
 	// cout << "<BGR_ mean1 color> " << mean_color1 << "  <BGR_ mean2 color>" << mean_color2 << endl;
 
 	Mat img_binary;
@@ -682,7 +701,7 @@ int main(int argc, char **argv)
 
         tm.reset();
 
-		waitKey(1);
+		waitKey();
 
 		ros::spinOnce();
 		loop_rate.sleep();
