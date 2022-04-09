@@ -163,7 +163,7 @@ Mat combine_both_img(Mat hls, Mat lab)
 Mat normalize_HLS_L(Mat unWarp)
 {
     /* normalizing L color channel pixel from hls img. */
-    Mat imgHLS_L, imgNormal;
+    Mat imgHLS_L, imgNormal, imgOut2;
     double minVal, maxVal;
     Point minLoc, maxLoc;
     int lowThres = 170; // origin : 200
@@ -182,6 +182,9 @@ Mat normalize_HLS_L(Mat unWarp)
     Mat imgOut = make_zeros(imgNormal);
 
     threshold(imgNormal, imgOut, lowThres, 255, THRESH_BINARY);
+    
+    // 적응형 이진화
+    adaptiveThreshold(imgOut, imgOut2, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 3, 5);
 
     return imgOut;
 }
@@ -233,39 +236,29 @@ Mat bird_eyes_view(Mat img)
 	// -----------------------------------------------------------------------------------------------
 
 	// //원본의 좌표(좌하단, 우하단, 좌상단, 우상단) <ORIGIN>
-	// warp_src_point[0].x = 5;
-	// warp_src_point[0].y = height;
-	// warp_src_point[1].x = width - warp_src_point[0].x;
-	// warp_src_point[1].y = warp_src_point[0].y;
-	// warp_src_point[2].x = 280;
-	// warp_src_point[2].y = 80;
-	// warp_src_point[3].x = width - warp_src_point[2].x;
-	// warp_src_point[3].y = warp_src_point[2].y;
-
-	//원본의 좌표(좌하단, 우하단, 좌상단, 우상단) _ need to be retouched. <EXP>
-	warp_src_point[0].x = 8; // fix
-	warp_src_point[0].y = height; // fix
-	warp_src_point[1].x = width - warp_src_point[0].x; // fix
-	warp_src_point[1].y = warp_src_point[0].y; // fix
-	warp_src_point[2].x = 274; 
-	warp_src_point[2].y = 279;
+	warp_src_point[0].x = 5;
+	warp_src_point[0].y = height;
+	warp_src_point[1].x = width - warp_src_point[0].x;
+	warp_src_point[1].y = warp_src_point[0].y;
+	warp_src_point[2].x = 280;
+	warp_src_point[2].y = 80;
 	warp_src_point[3].x = width - warp_src_point[2].x;
 	warp_src_point[3].y = warp_src_point[2].y;
+
+	//원본의 좌표(좌하단, 우하단, 좌상단, 우상단) _ need to be retouched. <EXP>
+	// warp_src_point[0].x = 8; // fix
+	// warp_src_point[0].y = height; // fix
+	// warp_src_point[1].x = width - warp_src_point[0].x; // fix
+	// warp_src_point[1].y = warp_src_point[0].y; // fix
+	// warp_src_point[2].x = 274; 
+	// warp_src_point[2].y = 279;
+	// warp_src_point[3].x = width - warp_src_point[2].x;
+	// warp_src_point[3].y = warp_src_point[2].y;
 
 
     // -----------------------------------------------------------------------------------------------
 	//목표이미지의 좌표(좌하단, 우하단, 좌상단, 우상단) _ modified
-	warp_dst_point[0].x = 10;
-	warp_dst_point[0].y = height;
-	warp_dst_point[1].x = width - warp_dst_point[0].x;
-	warp_dst_point[1].y = height;
-	warp_dst_point[2].x = 150;
-	warp_dst_point[2].y = 0;
-	warp_dst_point[3].x = width - warp_dst_point[2].x;
-	warp_dst_point[3].y = 0;
-
-	// //목표이미지의 좌표(좌하단, 우하단, 좌상단, 우상단) _ origin
-	// warp_dst_point[0].x = 150;
+	// warp_dst_point[0].x = 10;
 	// warp_dst_point[0].y = height;
 	// warp_dst_point[1].x = width - warp_dst_point[0].x;
 	// warp_dst_point[1].y = height;
@@ -273,6 +266,16 @@ Mat bird_eyes_view(Mat img)
 	// warp_dst_point[2].y = 0;
 	// warp_dst_point[3].x = width - warp_dst_point[2].x;
 	// warp_dst_point[3].y = 0;
+
+	// //목표이미지의 좌표(좌하단, 우하단, 좌상단, 우상단) _ origin
+	warp_dst_point[0].x = 150;
+	warp_dst_point[0].y = height;
+	warp_dst_point[1].x = width - warp_dst_point[0].x;
+	warp_dst_point[1].y = height;
+	warp_dst_point[2].x = 150;
+	warp_dst_point[2].y = 0;
+	warp_dst_point[3].x = width - warp_dst_point[2].x;
+	warp_dst_point[3].y = 0;
 	
 	warp_matrix = cv::getPerspectiveTransform(warp_src_point, warp_dst_point);
 	invert(warp_matrix, warp_matrix_inv);
@@ -458,8 +461,8 @@ Mat preprocessing(Mat img, Mat img_warp){
 	// imshow("img_warp_color_mean", img); // 색 평균 영역 설정
 
 	// // ----------------------------------------------------INTEGRATE_EXP----------------------------------------------------
-	Scalar mean_color1 = HLS_mean(img_warp, img_warp.rows * 3 / 5, img_warp.rows * 1/ 5, img_warp.cols * 1 / 7, img_warp.cols / 7);
-	Scalar mean_color2 = HLS_mean(img_warp, img_warp.rows * 3 / 5, img_warp.rows * 1/ 5, img_warp.cols * 4 / 7, img_warp.cols * 1 / 7);
+	Scalar mean_color1 = IMG_mean(img_warp, img_warp.rows * 3 / 5, img_warp.rows * 1/ 5, img_warp.cols * 1 / 7, img_warp.cols / 7);
+	Scalar mean_color2 = IMG_mean(img_warp, img_warp.rows * 3 / 5, img_warp.rows * 1/ 5, img_warp.cols * 4 / 7, img_warp.cols * 1 / 7);
 	// cout << "<BGR_ mean1 color> " << mean_color1 << "  <BGR_ mean2 color>" << mean_color2 << endl;
 
 	Mat img_binary;
@@ -615,7 +618,7 @@ int main(int argc, char **argv)
 	TickMeter tm;
 
 	// VideoCapture cap1(0); //전방 정면캠 
-	VideoCapture cap1("/home/catkin_ws/src/stopline_2022/stopline_data/front_stopline.mp4"); // INTEGRATED SUBJECT VER	
+	VideoCapture cap1("/home/kroad/stopline_video/0329_6.mp4"); // INTEGRATED SUBJECT VER	
 
 	cap1.set(cv::CAP_PROP_FRAME_WIDTH, 640);
 	cap1.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
