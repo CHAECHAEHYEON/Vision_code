@@ -701,7 +701,7 @@ int main(int argc, char **argv)
 
         tm.reset();
 
-		waitKey();
+		waitKey(1);
 
 		ros::spinOnce();
 		loop_rate.sleep();
