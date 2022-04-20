@@ -1,6 +1,3 @@
-// 2022.04.06.WED
-// HLS, 
-
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <stdio.h>
@@ -35,182 +32,6 @@ bool callback = false;
 Scalar RGB_mean(Mat img, int X, int width, int Y, int height);
 int first_run = 1;
 
-Mat imgUndistort, imgUnwarp;
-    Mat imgHLS_L;
-    Mat imgLAB_B;
-    Mat combineOut;
-
-Mat make_zeros(Mat img)
-{
-    return Mat::zeros(img.rows, img.cols, img.type());
-}
-
-Mat filterImg(Mat imgUnwarp, int toColorChannel, int mode)
-{
-    /*
-    channel mode definition.
-        0 : Hue
-        1 : Lightness
-        2 : Saturation
-        
-        hue max : 179, l and s max : 255
-    */
-    Mat imgConverted;
-    // Mat imgOUT = Mat(720, 1280, CV_8UC3);
-    // Mat imgOUT = Mat::zeros(720, 1280, CV_8UC3);
-    Mat imgOUT = Mat::zeros(480, 640, CV_8UC1);
-
-    /* 1. convert color channel from BGR to HLS or LAB. */
-    if (toColorChannel == 0)
-    {
-        cvtColor(imgUnwarp, imgConverted, COLOR_BGR2HLS);
-        // imshow("Hls", imgConverted);
-    }
-    else if (toColorChannel == 1)
-    {
-        cvtColor(imgUnwarp, imgConverted, COLOR_BGR2Lab);
-        // imshow("Lab", imgConverted);
-    }
-
-    /* 2. pixel pointer variable setting.
-    help -->  https://stackoverflow.com/questions/7899108/opencv-get-pixel-channel-value-from-mat-image
-    */
-    uint8_t *pixelPtr = (uint8_t *)imgConverted.data;
-    int cn = imgConverted.channels();
-
-    switch (mode)
-    {
-    case 0:
-        // set H space Only  // set L space Only
-        for (int i = 0; i < imgConverted.rows; i++)
-        {
-            for (int j = 0; j < imgConverted.cols; j++)
-            {
-                imgOUT.at<uint8_t>(i, j) = pixelPtr[i * imgConverted.cols * cn + j * cn + 0];
-            }
-        }
-        break;
-    case 1:
-        // set L space Only  // set A space Only
-        for (int i = 0; i < imgConverted.rows; i++)
-        {
-            for (int j = 0; j < imgConverted.cols; j++)
-            {
-                imgOUT.at<uint8_t>(i, j) = pixelPtr[i * imgConverted.cols * cn + j * cn + 1];
-            }
-        }
-        break;
-
-    case 2:
-        // set S space Only  // set B space Only
-        for (int i = 0; i < imgConverted.rows; i++)
-        {
-            for (int j = 0; j < imgConverted.cols; j++)
-            {
-                imgOUT.at<uint8_t>(i, j) = pixelPtr[i * imgConverted.cols * cn + j * cn + 2];
-            }
-        }
-        break;
-
-    default:
-        break;
-    }
-
-    /* 
-    COLORMAP for grayscale.     
-    ref : https://learnopencv.com/applycolormap-for-pseudocoloring-in-opencv-c-python/
-     applyColorMap(imgOUT, imgOUT, COLORMAP_BONE);
-     컬러맵을 쓰니깐 채널이 1개에서 3개가 되버렸다. 이 메쏘드는 안쓰는게 맞는듯.
-     컬러맵은 그레이 스케일에 대해서, 색상을 역으로 부여하는 꼴이 되기 때문에 채널이 3개로 늘어난 듯.
-    */
-
-    return imgOUT;
-}
-
-Mat combine_both_img(Mat hls, Mat lab)
-{
-    Mat imgOut;
-
-    imgOut = make_zeros(hls);
-    for (int i = 0; i < imgOut.rows; i++)
-    {
-        for (int j = 0; j < imgOut.cols; j++)
-        {
-            if (hls.at<uint8_t>(i, j) == 1 || lab.at<uint8_t>(i, j) == 1)
-            {
-                imgOut.at<uint8_t>(i, j) = 1;
-            }
-        }
-    }
-    return imgOut;
-}
-
-
-Mat make_ones(Mat img)
-{
-    return Mat::ones(img.rows, img.cols, img.type());
-}
-
-Mat normalize_HLS_L(Mat unWarp)
-{
-    /* normalizing L color channel pixel from hls img. */
-    Mat imgHLS_L, imgNormal;
-    double minVal, maxVal;
-    Point minLoc, maxLoc;
-    int lowThres = 170; // origin : 200
-    
-    // get a single channel img(filtered one.)
-    imgHLS_L = filterImg(unWarp, 0, 1);
-    // imshow("filterimg",imgHLS_L);
-    // get max, min value of the matrix.
-    minMaxLoc(imgHLS_L, &minVal, &maxVal, &minLoc, &maxLoc);
-
-    // make normalized img.
-    imgNormal = (255 / maxVal) * imgHLS_L;
-    
-    // imshow("normalimg",imgNormal);
-    // apply threshold for L channel.
-    Mat imgOut = make_zeros(imgNormal);
-    threshold(imgNormal, imgOut, lowThres, 255, THRESH_BINARY);
-
-    return imgOut;
-}
-
-Mat normalize_LAB_B(Mat unWarp)
-{
-    /* normalizing B color channel pixel from LAB img. */
-    Mat imgLAB_B, imgNormal;
-    double minVal, maxVal;
-    Point minLoc, maxLoc;
-    int yellowCrit = 190;
-    int lowThres = 10; // origin: 190
-
-    // get a single channel img(filtered one.)
-    imgLAB_B = filterImg(unWarp, 1, 2);
-
-    // get max, min value of the matrix.
-    minMaxLoc(imgLAB_B, &minVal, &maxVal, &minLoc, &maxLoc);
-
-    // (conditional) make normalized img.
-    // B channel means a range from blue(0) to yellow(255).
-    // So, the bigger values, it becomes close to yellow color.(yellow lane)
-    if (maxVal > yellowCrit)
-    {
-        imgNormal = (255 / maxVal) * imgLAB_B;
-    }
-    else
-    {
-        imgNormal = imgLAB_B;
-    }
-    // imshow("imgNormal", imgNormal);
-
-    // apply threshold for L channel.
-    Mat imgOut = Mat::zeros(imgNormal.rows, imgNormal.cols, imgNormal.type());
-    threshold(imgNormal, imgOut, 200, 255, THRESH_BINARY);
-
-    return imgOut;
-}
-
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "stopline_publisher");
@@ -221,21 +42,14 @@ int main(int argc, char **argv)
     sensor_msgs::ImagePtr msg1; //카메라에서 얻은 정보를 송신하려면 이걸 작성해야 함.
     ros::Rate loop_rate(50);
     int count = 100; //초기 거리는 100으로 설정해 멈추지 않도록 한다.
-    // VideoCapture cap1(0); //전방 정면캠
-    // VideoCapture cap1(2);
-    // VideoCapture cap1("/home/kroad/stopline_video_2/stopline_video/stopline_video/0329_7.mp4");
-    VideoCapture cap1("/home/kroad/stopline_video3/stopline_video_total/stopline_video/0329_11.mp4");
-    TickMeter tm;
-    
+    //VideoCapture cap1(0); //전방 정면캠
+    VideoCapture cap1(2);
 
     cap1.set(cv::CAP_PROP_FRAME_WIDTH, 640);
     cap1.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
     while(ros::ok())
     {
-        tm.start();
-
-
-        waitKey();
+        waitKey(1);
         //if (waitKey(cvRound(cap1.get(CAP_PROP_FPS) / 1000)) == 27) cap1 >> frame1;
         cap1 >> frame1;
         msg1 = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame1).toImageMsg();
@@ -248,88 +62,30 @@ int main(int argc, char **argv)
         Mat img_resize;
         cv::resize(frame1, img_resize, cv::Size(640, 480), 0, 0);
 
-        Mat img_lab_origin, img_hls_origin ;
         img_color = img_resize.clone();
-        img_lab_origin = img_resize.clone();
-        img_hls_origin = img_resize.clone();
 
-        // Mat img_color_lab,img_color_hls;
-        // cvtColor(img_color,img_color_lab, COLOR_BGR2Lab);
-        // cvtColor(img_hls_origin,img_color_hls, COLOR_BGR2HLS);
-
-        // Mat imgOUT_Lab = Mat::zeros(img_color_lab.rows, img_color_lab.cols, CV_8UC1);
-
-        // Mat img_OUT_HLS, img_OUT_Lab, img_combinded;
-        // img_OUT_HLS= normalize_HLS_L(img_hls_origin);
-        // img_OUT_Lab= normalize_LAB_B(img_lab_origin);
-
-        // img_combinded = combine_both_img(img_OUT_HLS, img_OUT_Lab);
-
-        Mat img_warp, img_warp_clone,img_warp_clone_hls,img_warp_clone_lab;
+        Mat img_warp, img_warp_clone;
 
         if (first_run == 1)
         {
             img_warp = bird_eyes_view(img_resize);
-            // img_warp = bird_eyes_view(img_combinded) ;
-            
             first_run = 0;
         }
         else
         {
             cv::warpPerspective(img_resize, img_warp, warp_matrix, cv::Size());
         }
+        img_warp_clone = img_warp.clone();
 
-        Mat white = Mat::zeros(480, 640, img_warp.type());
-        rectangle(white, Rect(0, 450, 30, 30), Scalar(250, 250, 250), -1);
-        //imshow("11", white);
+        rectangle(img_warp_clone, Rect(Point(img_warp.cols * 2/9, img_warp.rows * 2/3), Point(img_warp.cols * 5/18, img_warp.rows * 5/6)), Scalar(0, 0, 255), 1, 8, 0); // 색 평균 영역 설정
+        rectangle(img_warp_clone, Rect(Point(img_warp.cols * 2/3, img_warp.rows * 2/3), Point(img_warp.cols * 13/18, img_warp.rows * 5/6)), Scalar(0, 0, 255), 1, 8, 0); // 두 번째 색 평균 영역 설정
+        imshow("img_warp_color_mean", img_warp_clone);
 
-        img_warp_clone_hls = img_warp.clone();
-        // imshow("img_warp",img_warp_clone_hls);
-        img_warp_clone_lab = img_warp.clone();
-
-        Mat img_warp_clone_hls_white = img_warp_clone_hls + white;
-        // imshow("11", img_warp_clone_hls_white);
-
-
-        Mat img_OUT_HLS, img_OUT_Lab, img_combinded;
-        img_OUT_HLS= normalize_HLS_L(img_warp_clone_hls_white);
-        // imshow("img_out_HLS",img_OUT_HLS);
-
-        
-
-        img_OUT_Lab= normalize_LAB_B(img_warp_clone_lab);
-        // imshow("img_out_lab",img_OUT_Lab);
-
-        Mat BLURRED;
-        medianBlur(img_OUT_HLS, BLURRED,3);
-        // medianBlur(OPEN_CLOSE, BLURRED,3);
-        imshow("bluur~~",BLURRED);
-
-
-        Mat OPEN_CLOSE;
-        // cv::morphologyEx(BLURRED,OPEN_CLOSE,MORPH_OPEN,Mat());
-        // cv::morphologyEx(OPEN_CLOSE,OPEN_CLOSE,MORPH_CLOSE,Mat());
-
-        
-        cv::morphologyEx(BLURRED,OPEN_CLOSE,MORPH_CLOSE,Mat());
-        cv::morphologyEx(OPEN_CLOSE,OPEN_CLOSE,MORPH_OPEN,Mat());
-        imshow("OPEN~~",OPEN_CLOSE);
-
-
-        img_combinded = combine_both_img(img_OUT_HLS, img_OUT_Lab);
-        // imshow("comb",img_combinded);
-
-        // rectangle(img_warp_clone, Rect(Point(img_warp.cols * 2/9, img_warp.rows * 2/3), Point(img_warp.cols * 5/18, img_warp.rows * 5/6)), Scalar(0, 0, 255), 1, 8, 0); // 색 평균 영역 설정
-        // rectangle(img_warp_clone, Rect(Point(img_warp.cols * 2/3, img_warp.rows * 2/3), Point(img_warp.cols * 13/18, img_warp.rows * 5/6)), Scalar(0, 0, 255), 1, 8, 0); // 두 번째 색 평균 영역 설정
-        // imshow("img_warp_color_mean", img_warp_clone);
-
-        // Scalar mean_color1 = RGB_mean(img_warp, img_warp.cols * 2/9, img_warp.cols * 1/18, img_warp.rows * 2/3, img_warp.rows * 1/6);
-        // Scalar mean_color2 = RGB_mean(img_warp, img_warp.cols * 2/3, img_warp.cols * 1/18, img_warp.rows * 2/3, img_warp.rows * 1/6);
+        Scalar mean_color1 = RGB_mean(img_warp, img_warp.cols * 2/9, img_warp.cols * 1/18, img_warp.rows * 2/3, img_warp.rows * 1/6);
+        Scalar mean_color2 = RGB_mean(img_warp, img_warp.cols * 2/3, img_warp.cols * 1/18, img_warp.rows * 2/3, img_warp.rows * 1/6);
 
         Mat img_binary;
-        // cv::inRange(img_warp, (mean_color1 + mean_color2) / 2 + cv::Scalar(10, 10, 10), cv::Scalar(255, 255, 255), img_binary);
-        img_binary = img_combinded;
-
+        cv::inRange(img_warp, (mean_color1 + mean_color2) / 2 + cv::Scalar(10, 10, 10), cv::Scalar(255, 255, 255), img_binary);
         imshow("img_binary", img_binary);
 
         Mat img_integral;
@@ -411,19 +167,10 @@ int main(int argc, char **argv)
         setMouseCallback("img_warp_color_mean", on_mouse);
 
         msg.data = count;
-        // ROS_INFO("%f", msg.data); //메시지를 화면에 표시
+        ROS_INFO("%f", msg.data); //메시지를 화면에 표시
         stopline_pub.publish(msg); // msg데이터 전송 (이름 = stopline)
-
-        tm.stop();
-
-        cerr<< "-----Compute Time per frame" << tm.getTimeMilli()<<"ms." <<endl;
-
-        tm.reset();
-
-
         ros::spinOnce();
         loop_rate.sleep();
-
     }
     return 0;
 }
@@ -447,42 +194,42 @@ Mat bird_eyes_view(Mat img)
     Point2f warp_dst_point[4];
 
     // //원본의 좌표
-    warp_src_point[0].x = 5;
-    warp_src_point[0].y = height;
-    warp_src_point[1].x = width - warp_src_point[0].x;
-    warp_src_point[1].y = warp_src_point[0].y;
-    warp_src_point[2].x = 280;
-    warp_src_point[2].y = 80;
-    warp_src_point[3].x = width - warp_src_point[2].x;
-    warp_src_point[3].y = warp_src_point[2].y;
-
-    // warp_src_point[0].x = 47;
+    // warp_src_point[0].x = 5;
     // warp_src_point[0].y = height;
     // warp_src_point[1].x = width - warp_src_point[0].x;
     // warp_src_point[1].y = warp_src_point[0].y;
-    // warp_src_point[2].x = 266;
-    // warp_src_point[2].y = 280;
+    // warp_src_point[2].x = 280;
+    // warp_src_point[2].y = 80;
     // warp_src_point[3].x = width - warp_src_point[2].x;
     // warp_src_point[3].y = warp_src_point[2].y;
 
-    // //목표 좌표
-    warp_dst_point[0].x = 150;
-    warp_dst_point[0].y = height;
-    warp_dst_point[1].x = width - warp_dst_point[0].x;
-    warp_dst_point[1].y = height;
-    warp_dst_point[2].x = 150;
-    warp_dst_point[2].y = 0;
-    warp_dst_point[3].x = width - warp_dst_point[2].x;
-    warp_dst_point[2].y = 0;
+    warp_src_point[0].x = 47;
+    warp_src_point[0].y = height;
+    warp_src_point[1].x = width - warp_src_point[0].x;
+    warp_src_point[1].y = warp_src_point[0].y;
+    warp_src_point[2].x = 266;
+    warp_src_point[2].y = 280;
+    warp_src_point[3].x = width - warp_src_point[2].x;
+    warp_src_point[3].y = warp_src_point[2].y;
 
-    // warp_dst_point[0].x = 50;
+    // //목표 좌표
+    // warp_dst_point[0].x = 150;
     // warp_dst_point[0].y = height;
     // warp_dst_point[1].x = width - warp_dst_point[0].x;
     // warp_dst_point[1].y = height;
-    // warp_dst_point[2].x = 50;
+    // warp_dst_point[2].x = 150;
     // warp_dst_point[2].y = 0;
     // warp_dst_point[3].x = width - warp_dst_point[2].x;
     // warp_dst_point[2].y = 0;
+
+    warp_dst_point[0].x = 50;
+    warp_dst_point[0].y = height;
+    warp_dst_point[1].x = width - warp_dst_point[0].x;
+    warp_dst_point[1].y = height;
+    warp_dst_point[2].x = 50;
+    warp_dst_point[2].y = 0;
+    warp_dst_point[3].x = width - warp_dst_point[2].x;
+    warp_dst_point[2].y = 0;
 
     warp_matrix = cv::getPerspectiveTransform(warp_src_point, warp_dst_point);
     invert(warp_matrix, warp_matrix_inv); //전치행렬 생성
@@ -603,7 +350,7 @@ Mat mask_filter(Mat img, int _mask_w, int _mask_h, int thresh)
     }
 
     imshow("img_stop", img_stop);
-    // imshow("img_maskfilter", img_maskfilter);
+    imshow("img_maskfilter", img_maskfilter);
     return img_stop;
 }
 
