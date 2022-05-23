@@ -1,5 +1,5 @@
-#ifndef __VISION_FUNC_H__
-#define __VISION_FUNC_H__
+#ifndef __STOPLINE_FUNC_H__
+#define __STOPLINE_FUNC_H__
 
 
 #include <opencv2/opencv.hpp>
@@ -20,7 +20,7 @@ class WeAreVision
 private:
     /* data */
 public:
-    // Vision_func(/* args */);
+    // Stopline_func(/* args */);
     Mat warp_matrix_inv;
     Mat warp_matrix;
     Mat img_color;
