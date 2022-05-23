@@ -14,4 +14,4 @@ rqt->  plugins → topics → message publisher → liderstop true(체크)로 �
 
 # Stopline => vision header folder
 1. catkin_ws/src/stopline_2021 에서 cmakelist 수정하기
-include_directories("경로쓰기") 
+2. include_directories("경로쓰기") 
