@@ -1,8 +1,7 @@
-#include "Vision_func.h"
+#include "stopline_func.h"
 
 using namespace cv;
 using namespace std;
-// WeAreVision test;
 
 // -----------FUNCTIONS--------------------------------------------------------------
 Mat WeAreVision::make_zeros(Mat img)
