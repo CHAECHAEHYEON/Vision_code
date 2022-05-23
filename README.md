@@ -12,6 +12,8 @@ rqt->  plugins → topics → message publisher → liderstop true(체크)로 �
 2. 카메라로 촬영한 후 실제 사이즈 if문으로 비교 요망
 
 
-# Stopline => vision header folder & test header.cpp
-1. catkin_ws/src/stopline_2021 에서 cmakelist 수정하기
-2. include_directories("경로쓰기") 
+# Stopline => vision header folder & stopline_2022.cpp
+1. vision header 폴더에 있는 파일 2개 다운
+2. catkin_ws/src/stopline_2021 에서 cmakelist 수정하기
+3. include_directories("경로쓰기") 
+4. stopline_2022.cpp가 main
