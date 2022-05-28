@@ -1,7 +1,8 @@
-#include "stopline_func.h"
+#include "Vision_func.h"
 
 using namespace cv;
 using namespace std;
+// WeAreVision test;
 
 // -----------FUNCTIONS--------------------------------------------------------------
 Mat WeAreVision::make_zeros(Mat img)
@@ -458,7 +459,7 @@ Mat WeAreVision::STOP_preprocessing(Mat img, Mat img_warp){
 	// imshow("img_integral",img_integral);
 
 	Mat img_mask;
-	img_mask = mask_filter(img_integral, 5, 5, 120); // (5,5,85)   (5,8,120)      check!!!!!!!!!!!!!!!!!!!!@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	img_mask = mask_filter(img_integral, 5, 5, 150); // (5,5,85)   (5,8,120)      check!!!!!!!!!!!!!!!!!!!!@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	// imshow("img_mask", img_mask);   //mask filter 이거 체크!!!!!!!!!!!!!
 
 	Mat warp_inv;
@@ -468,73 +469,97 @@ Mat WeAreVision::STOP_preprocessing(Mat img, Mat img_warp){
 	return warp_inv;
 }
 
-void WeAreVision::DISPLAY_meter(Mat final, int count){
-			if (isStop == 12)
+int WeAreVision::DISPLAY_meter(Mat final, int count){
+	
+	int data;
+		if (isStop == 12)
 		{
 			count = 12;
+			data = count;
 			putText(final, "12M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
+			return data;
 		}
 		else if (isStop == 10)
 		{
 			count = 10;
+			data = count;
 			putText(final, "10M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
+			return data;
 		}
 		else if (isStop == 9)
 		{
 			count = 9;
+			data = count;
 			putText(final, "9M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
+			return data;
 		}
 		else if (isStop == 8)
 		{
 			count = 8;
+			data = count;
 			putText(final, "8M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
 			// isStop=100;
+			return data;
 		}
 		else if (isStop == 7)
 		{
 			count = 7;
+			data = count;
 			putText(final, "7M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
 			// isStop=100;
+			return data;
 		}
 
 		else if (isStop == 6)
 		{
 			count = 6;
+			data = count;
 			putText(final, "6M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
 			// isStop=100;
+			return data;
 		}
 		else if (isStop == 5)
 		{
 			count = 5;
+			data = count;
 			putText(final, "5M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
 			// isStop=100;
+			return data;
 		}
 		else if (isStop == 4)
 		{
 			count = 4;
+			data = count;
 			putText(final, "4M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
 			// isStop = 100;
+			return data;
 		}
 		else if (isStop == 3)
 		{
 			count = 3;
+			data = count;
 			putText(final, "3M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
 			// isStop = 100;
+			return data;	
 		}
 		else if (isStop == 2)
 		{
 			count = 2;
+			data = count;
 			putText(final, "2M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
 			isStop = 100;
+			return data;
 		}
 
 		else if (isStop == 100)
 		{
 			count = 100;
+			data = count;
 			putText(final, "Go", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
+			return data;
 		}
 
-
+	
 }
 
 void WeAreVision::on_mouse(int event, int x, int y, int flags, void *)
