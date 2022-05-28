@@ -3,8 +3,8 @@
 // 0409 update : 1. RGB_mean -> IMG_mean
 
 
-#include "stopline_func.h"
-#include "stopline_func.cpp"
+#include "Vision_func.h"
+#include "Vision_func.cpp"
 
 using namespace cv;
 using namespace std;
@@ -26,8 +26,8 @@ int main(int argc, char **argv)
 
 	TickMeter tm;
 
-	// VideoCapture cap1(2); //전방 정면캠 
-	VideoCapture cap1("/home/usera/stopline_vedio/stopline_video_total/stopline_video/0329_11.mp4"); // INTEGRATED SUBJECT VER	
+	VideoCapture cap1(2); //전방 정면캠 
+	// VideoCapture cap1("/home/usera/stopline_vedio/good/0409_1.mp4"); // INTEGRATED SUBJECT VER	
 
 	cap1.set(cv::CAP_PROP_FRAME_WIDTH, 640);
 	cap1.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
@@ -75,8 +75,10 @@ int main(int argc, char **argv)
 		Mat final;
 		addWeighted(WAV.STOP_preprocessing(img_warp_clone, img_warp), 1, img_resize1, 1, 0, final);
 
-		WAV.DISPLAY_meter(final, count);
+		count = WAV.DISPLAY_meter(final, count);
 		imshow("final", final);
+
+		// cout << 
 		
 		// setMouseCallback("img_warp",on_mouse);
 
@@ -91,26 +93,10 @@ int main(int argc, char **argv)
 
         tm.reset();
 
-		waitKey();
+		waitKey(1);
 
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
 	return 0;
 }
-
-// CLASS-alpha ---------------------
-// int main(int argc, char **argv)
-// {
-//     ros::init(argc, argv, "mapping");
-//     CMapping mapping;
-//     if (mapping.init())
-//     {
-//         ROS_FATAL("Mapping initialization failed");
-//         return -1;
-//     }
-
-//     mapping.publish();
-
-//     return 0;
-// }
