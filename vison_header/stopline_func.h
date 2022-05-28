@@ -1,5 +1,5 @@
-#ifndef __STOPLINE_FUNC_H__
-#define __STOPLINE_FUNC_H__
+#ifndef __VISION_FUNC_H__
+#define __VISION_FUNC_H__
 
 
 #include <opencv2/opencv.hpp>
@@ -20,7 +20,7 @@ class WeAreVision
 private:
     /* data */
 public:
-    // Stopline_func(/* args */);
+    // Vision_func(/* args */);
     Mat warp_matrix_inv;
     Mat warp_matrix;
     Mat img_color;
@@ -40,6 +40,7 @@ public:
     Point2f warp_DST_ROI[4];
     Point ptOld1;
     int isStop = 100;
+    // int count = 100;
     int H, S, V;
     bool callback = false;	
     int first_run = 1; // KEY for compute speed!!!
@@ -56,7 +57,7 @@ public:
     Mat mask_filter(Mat img, int _mask_w, int _mask_h, int thresh);
     Mat STOP_preprocessing(Mat img, Mat img_warp);
 
-    void DISPLAY_meter(Mat final, int count);
+    int DISPLAY_meter(Mat final, int count);
     void on_mouse(int event, int x, int y, int flags, void *);
     void mouse_callback(int event, int x, int y, int flags, void *param);
 
