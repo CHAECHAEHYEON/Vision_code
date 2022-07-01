@@ -57,11 +57,13 @@ float final_theta = 90;
 int isStop = 10;
 int right_line = 0;     // 기존의 SecondLevel
 bool parking1 = false;
+bool parking2 = false;
 float encoder = 3;
 bool enc_fail = false;
 bool callback = false;
 bool third_level = false;
 bool FinalLevel;
+bool third_stop = false;
 Point rec_center;
 Mat img_color;
 Mat img_resize_new;
@@ -92,6 +94,7 @@ void enc_fail_cb(const std_msgs::Bool::ConstPtr &msgs)
 Point parking_level1(Mat frame, int delay)
 {
     
+
     frame1 = frame.clone();
     // 이미지 자르기
     // rectangle(frame1, Rect(0, 0, 640, 190), Scalar(0, 0, 0), -1);
@@ -491,7 +494,7 @@ int main(int argc, char **argv)
 	stopline_pub = nh.advertise<std_msgs::Float64>("stopline_parking", 100);
 	encoder_pub = nh.advertise<std_msgs::Float64>("encoder_mode", 100);
 	image_transport::ImageTransport it(nh);
-	image_transport::Subscriber sub_image = it.subscribe("/camera/stopline/image_raw", 100, imageCallback);
+	image_transport::Subscriber sub_image = it.subscribe("/camera/rgb/image_raw", 100, imageCallback);
 
     ros::Rate loop_rate(50);
     printf("Waiting for ---/camera/stopline/image_raw---\n");
@@ -549,6 +552,8 @@ int main(int argc, char **argv)
         cout << "FPS: " << fps << endl;
         int delay = cvRound(1000 / fps);
 
+		int count = 10;
+
 
         if (parking1 == false)
         {
@@ -558,6 +563,8 @@ int main(int argc, char **argv)
 
         else if(parking1 == true && third_level == false)
         {
+
+			encoder = 2;
 
             Rect2d bbox(Point(rec_center.x-25, rec_center.y - 15), Point(rec_center.x + 25, rec_center.y + 10));
             // rectangle(frame_re, bbox, Scalar( 255, 0, 0 ), 2, 1 );
@@ -794,7 +801,11 @@ int main(int argc, char **argv)
             parking_level2_msg.data = theta_sum;
             parking_level2_pub.publish(parking_level2_msg);
 
-            if(final_theta <= 50) third_level = true;
+            if(final_theta <= 35) 
+			{
+				third_level = true;
+				// parking2 = false;
+			}
 
             imshow("line_detect", line_detect);
             imshow("dst", drawing_G);
@@ -819,7 +830,7 @@ int main(int argc, char **argv)
             waitKey(delay);
         }
 
-       else if (third_level == true)
+       else if (third_level == true && third_stop == false)
 			{
 				encoder = 2;
 				cout << "44444444444444444444444" << endl;
@@ -830,44 +841,44 @@ int main(int argc, char **argv)
 
 				if (isStop == 5)
 				{
-					// count = 5;
+					count = 5;
 					putText(final7, "5M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
 				}
 
 				else if (isStop == 4)
 				{
-					// count = 4;
+					count = 4;
 					putText(final7, "4M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
 				}
 
 				else if (isStop == 3)
 				{
-					// count = 3;
+					count = 3;
 					putText(final7, "3M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
 				}
 
 				else if (isStop == 2)
 				{
-					// count = 2;
+					count = 2;
 					putText(final7, "2M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
 				}
 
 				else if (isStop == 1)
 				{
-					// count = 1;
+					count = 1;
 					putText(final7, "1M!!", Point(380, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
 					// isStop=10;
 				}
 				else if (isStop == 10)
 				{
-					// count = 10;
+					count = 10;
 					putText(final7, "GO!", Point(380, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
 				}
 				imshow("final7", final7);
 
 				if (FinalLevel == 1 || enc_fail == true)
 				{
-					third_level = false;
+					third_stop = true;
 					cout << "enc_fail : " << enc_fail << endl;
 					cout << "FinalLevel : " << FinalLevel << endl;
 					encoder = 1;
