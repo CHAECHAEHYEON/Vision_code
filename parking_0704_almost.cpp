@@ -528,8 +528,8 @@ int main(int argc, char **argv)
         tracker = TrackerMedianFlow::create();
     if (trackerType == "MOSSE")
         tracker = TrackerMOSSE::create();
-    if (trackerType == "CSRT")
-        tracker = TrackerCSRT::create();
+//     if (trackerType == "CSRT")
+//         tracker = TrackerCSRT::create();
 
     Mat frame, frame3;
 
