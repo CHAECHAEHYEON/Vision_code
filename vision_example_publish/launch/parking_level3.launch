@@ -1,0 +1,7 @@
+
+<launch>
+
+  <node pkg="parking_level3" type="parking_level3" name="parking_level3"/>
+  <node pkg="rviz" type="rviz" name="rviz_2" output="screen" args = "-d $(find parking_level3)/rviz/camara.rviz"/>
+
+</launch>
