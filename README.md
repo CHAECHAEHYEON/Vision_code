@@ -19,10 +19,7 @@ rqt->  plugins → topics → message publisher → liderstop true(체크)로 �
 4. stopline_2022.cpp가 main
 
 # Parking_0704_almost
-1. 행복한 밤입니다.....
-2. 드디어 주차가 거의 완성입니다...
-3. 다들 고생 많았습니다...
-4. 코드 실행하려면 우선 vision_publish_example.cpp를 켜야합니다.
-5. 그리고 parking_0704_almost.cpp를 켜주세욥!
-6. opencv의 tracking 모듈이 꼭 필요한 아이입니다!!!
-7. 라이다 true는 rostopic pub /Lidar_Stop std_msgs/Bool true 
+1. 코드 실행하려면 우선 vision_publish_example.cpp를 켜야합니다.
+2. 그리고 parking_0704_almost.cpp를 켜주세욥!
+3. opencv의 tracking 모듈이 꼭 필요한 아이입니다!!!
+4. 라이다 true는 rostopic pub /Lidar_Stop std_msgs/Bool true 
