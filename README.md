@@ -23,3 +23,7 @@ rqt->  plugins → topics → message publisher → liderstop true(체크)로 �
 2. 그리고 parking_0711.cpp를 켜주세욥!
 3. opencv의 tracking 모듈이 꼭 필요한 아이입니다!!!
 4. 라이다 true는 rostopic pub /Lidar_Stop std_msgs/Bool true 
+
+# Parking_0712
+1. 아직 정확한 것은 아니지만 주석 좀 추가하고 변수명 알아보기 쉡게끔 정리함
+2. 화면 출력 수 줄임
