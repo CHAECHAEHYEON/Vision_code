@@ -99,7 +99,7 @@ Point parking_level1(Mat frame, int delay)
     frame1 = frame.clone();
     // 이미지 자르기
     rectangle(frame1, Rect(0, 0, 640, 70), Scalar(0, 0, 0), -1); //상단 for koreatech
-	rectangle(frame1, Rect(0, 0, 640, 140), Scalar(0, 0, 0), -1); //for k-citys
+	rectangle(frame1, Rect(0, 0, 640, 110), Scalar(0, 0, 0), -1); //for k-citys
 	// rectangle(frame1, Rect(0, 380, 640, 480), Scalar(0, 0, 0), -1); //하단
 
 
@@ -148,7 +148,7 @@ Point parking_level1(Mat frame, int delay)
     // createTrackbar("Upper S", "mask", &upper_S, 255, on_HLS_change);
     // on_HLS_change(0, 0);
     // 트랙바 안쓰고 inRange
-    inRange(frame2, Scalar(0, 150, 0), Scalar(255, 255, 255), mask);
+    inRange(frame2, Scalar(0, 120, 0), Scalar(255, 255, 255), mask);
     imshow("mask", mask);
     // imshow("mask", mask);
     // Mat mask_warp;
@@ -461,7 +461,7 @@ Mat preprocessing_forth_level(Mat img)
 	else if (isStop == 2)
 	{
 		count = 2;
-		FinalLevel = 1;
+		// FinalLevel = 1;
 		//putText(final10, "4M", Point(500, 100), FONT_HERSHEY_SIMPLEX, 3, Scalar(0, 0, 255));
 	}
 
@@ -503,6 +503,8 @@ int main(int argc, char **argv)
 	encoder_pub = nh.advertise<std_msgs::Float64>("encoder_mode", 100);
 	image_transport::ImageTransport it(nh);
 	image_transport::Subscriber sub_image = it.subscribe("/camera/vision/image_raw", 100, imageCallback);
+	image_transport::Publisher image_raw_pub = it.advertise("camera/vision2/image_raw", 100);
+	sensor_msgs::ImagePtr msg;
 
     ros::Rate loop_rate(50);
     printf("Waiting for ---/camera/stopline/image_raw---\n");
@@ -550,6 +552,10 @@ int main(int argc, char **argv)
         Mat frame_re;
         resize(frame, frame_re, Size(640, 480), 0, 0, INTER_CUBIC);
 
+		msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
+		
+		image_raw_pub.publish(msg);
+
         Mat img_resize6;
         cv::resize(frame_for_front_camara, img_resize6, cv::Size(640, 480), 0, 0);
 		imshow("aaaaaa",frame_for_front_camara);
@@ -576,7 +582,7 @@ int main(int argc, char **argv)
 
 			encoder = 2;
 
-            Rect2d bbox(Point(rec_center.x-25, rec_center.y - 15), Point(rec_center.x + 25, rec_center.y + 15));
+            Rect2d bbox(Point(rec_center.x-10, rec_center.y - 10), Point(rec_center.x + 30, rec_center.y + 10));
             // rectangle(frame_re, bbox, Scalar( 255, 0, 0 ), 2, 1 );
 
             imshow("Tracking", frame_re);
@@ -629,7 +635,7 @@ int main(int argc, char **argv)
             // HLS 색공간으로 이진화
             Mat src_HLS;
             cvtColor(big_frame_part, src_HLS, COLOR_BGR2HLS);
-            inRange(src_HLS, Scalar(0, 190, 0), Scalar(255, 255, 255), src_HLS);
+            inRange(src_HLS, Scalar(0, 130, 0), Scalar(255, 255, 255), src_HLS);
 
             // 이진화 모폴로지 연산
             dilate(src_HLS, src_HLS, Mat());
@@ -943,7 +949,7 @@ int main(int argc, char **argv)
             parking_level2_msg.data = theta_temp;
             parking_level2_pub.publish(parking_level2_msg);
 
-            if(final_theta <= 52) 
+            if(final_theta <= 45) 
 			{
 				third_level = true;
 				// parking2 = false;
@@ -1275,25 +1281,25 @@ Mat mask_filter(Mat img, int _mask_w, int _mask_h, int thresh)
 					 << endl;
 				isStop = 5;
 			}
-			else if (y < 240)
+			else if (y < 230)
 			{
 				cout << "stop line distance : 4M\n"
 					 << endl;
 				isStop = 4;
 			}
-			else if (y < 340)
+			else if (y < 267)
 			{
 				cout << "stop line distance : 3M\n"
 					 << endl;
 				isStop = 3;
 			}
-			else if (y < 440)
+			else if (y < 330)
 			{
 				cout << "stop line distance : 2M\n"
 					 << endl;
 				isStop = 2;
 			}
-			else if (y < 470)
+			else if (y < 454)
 			{
 				cout << "stop line!!!!\n"
 					 << endl;
