@@ -73,6 +73,7 @@ Mat img_level3_new;
 Mat frame_for_front_camara;
 Mat img_resize1000;
 Mat warp_matrix_inv;
+Mat frame2;
 
 // ros::Publisher parking_pub;
 ros::Subscriber Parking_level1_sub;		// 라이다
@@ -109,7 +110,7 @@ Point parking_level1(Mat frame, int delay)
     
     // HLS색 공간 변경
     Mat src_HLS;
-    cv::cvtColor(frame1, src_HLS, COLOR_BGR2HLS);
+    cv::cvtColor(level_one_src, src_HLS, COLOR_BGR2HLS);
     
     frame_HLS = src_HLS.clone();
 
@@ -408,7 +409,7 @@ int main(int argc, char **argv)
     ros::Rate loop_rate(50);
     printf("Waiting for ---/camera/stopline/image_raw---\n");
 
-	VideoCapture cap(4);
+	VideoCapture cap(2);
 
     cap.set(cv::CAP_PROP_FRAME_WIDTH, 640);
     cap.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
@@ -782,6 +783,7 @@ int main(int argc, char **argv)
 				putText(final2, SSTR(float(isStop)) + "M", Point(300,50), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0, 0, 255), 5);
 				count = isStop;
 
+				Mat final7;
 				if (isStop == 10)
 				{
 					count = 10;
