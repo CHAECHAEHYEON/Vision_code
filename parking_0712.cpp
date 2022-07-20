@@ -101,7 +101,7 @@ Point parking_level1(Mat frame, int delay)
 
     level_one_src = frame.clone();
     // 이미지 자르기
-    rectangle(level_one_src, Rect(0, 0, 640, 70), Scalar(0, 0, 0), -1); //상단 for koreatech
+    // rectangle(level_one_src, Rect(0, 0, 640, 70), Scalar(0, 0, 0), -1); //상단 for koreatech
 	rectangle(level_one_src, Rect(0, 0, 640, 110), Scalar(0, 0, 0), -1); //for k-citys
 	// rectangle(level_one_src, Rect(0, 380, 640, 480), Scalar(0, 0, 0), -1); //하단
 
@@ -118,7 +118,7 @@ Point parking_level1(Mat frame, int delay)
     setMouseCallback("HLS", on_mouse2);
     Mat binary;
 
-    inRange(frame_HLS, Scalar(0, 120, 0), Scalar(255, 255, 255), mask);
+    inRange(frame_HLS, Scalar(0, 170, 0), Scalar(255, 255, 255), mask);
     // imshow("mask", mask);
 
     Mat mask2 = mask.clone();
@@ -241,93 +241,95 @@ Mat parking_level3(Mat img)
 
 	//#######################################################################################################
 	// 허프라인 통한 전방각도 추출 시작
-	vector<Vec4i> lines;
-	HoughLinesP(edge, lines, 1, CV_PI / 180, 160, 50, 5);
+
+	// vector<Vec4i> lines;
+	// HoughLinesP(edge, lines, 1, CV_PI / 180, 160, 50, 5);
 
 	Mat dst;
 	cvtColor(edge, dst, COLOR_GRAY2BGR);
 	Mat dst4(Size(640, 480), CV_8UC1);
 
-	for (Vec4i l : lines)
-	{
-		// line(dst,Point(l[0],l[1]),Point(l[2],l[3]),Scalar(0,0,255),2,LINE_AA);
-		//cout << "lines.size: " << lines.size() << endl;
-		float dx = l[2] - l[0], dy = l[3] - l[1];
-		float k = dy / dx;
-		float radian = atan(k);
-		float theta = (radian * 180) / PI;
-		float d = sqrt(pow(dx, 2) + pow(dy, 2));
-		float y1 = l[1] - 10;
-		float y2 = l[3] + 10;
-		float x0 = (l[0] + l[2]) / 2;
-		float y0 = (l[1] + l[3]) / 2;
-		// cout << "theta: " << theta << endl;
-		std_msgs::Float64 Plus_or_Minus_msg;
+	// for (Vec4i l : lines)
+	// {
+	// 	// line(dst,Point(l[0],l[1]),Point(l[2],l[3]),Scalar(0,0,255),2,LINE_AA);
+	// 	//cout << "lines.size: " << lines.size() << endl;
+	// 	float dx = l[2] - l[0], dy = l[3] - l[1];
+	// 	float k = dy / dx;
+	// 	float radian = atan(k);
+	// 	float theta = (radian * 180) / PI;
+	// 	float d = sqrt(pow(dx, 2) + pow(dy, 2));
+	// 	float y1 = l[1] - 10;
+	// 	float y2 = l[3] + 10;
+	// 	float x0 = (l[0] + l[2]) / 2;
+	// 	float y0 = (l[1] + l[3]) / 2;
+	// 	// cout << "theta: " << theta << endl;
+	// 	std_msgs::Float64 Plus_or_Minus_msg;
 
-		if ((theta > -20 && theta < 20) && (d > 70))
-		{
-			line(dst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 2, LINE_AA);
-			// cout << "theta: " << theta << endl;
-			//cout << "Point(l[0], l[1]): " << Point(l[0], l[1]) << " Point(l[2], l[3]): " << Point(l[2], l[3]) << endl;
-			line(dst4, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255, 255, 255), 15, LINE_AA);
-			// cout << "theta_original: " << theta << endl;
-			Plus_or_Minus_msg.data = theta;
-			parking_level3_sign_pub.publish(Plus_or_Minus_msg);
-			cout << "Plus or Minus" << endl;
-			ROS_INFO("%f", Plus_or_Minus_msg.data);
-		}
-	}
+	// 	if ((theta > -20 && theta < 20) && (d > 70))
+	// 	{
+	// 		line(dst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 2, LINE_AA);
+	// 		// cout << "theta: " << theta << endl;
+	// 		//cout << "Point(l[0], l[1]): " << Point(l[0], l[1]) << " Point(l[2], l[3]): " << Point(l[2], l[3]) << endl;
+	// 		line(dst4, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255, 255, 255), 15, LINE_AA);
+	// 		// cout << "theta_original: " << theta << endl;
+	// 		Plus_or_Minus_msg.data = theta;
+	// 		parking_level3_sign_pub.publish(Plus_or_Minus_msg);
+	// 		cout << "Plus or Minus" << endl;
+	// 		ROS_INFO("%f", Plus_or_Minus_msg.data);
+	// 	}
+	// }
 	// imshow("dst", dst);
 	// imshow("dst4", dst4);
 
-	int num = (int)(dst4.total() * 0.1);
-	for (int i = 0; i < num; i++)
-	{
-		int x44 = rand() % dst4.cols;
-		int y44 = rand() % dst4.rows;
-		dst4.at<uchar>(y44, x44) = (i % 2) * 255;
-	}
+	// int num = (int)(dst4.total() * 0.1);
+	// for (int i = 0; i < num; i++)
+	// {
+	// 	int x44 = rand() % dst4.cols;
+	// 	int y44 = rand() % dst4.rows;
+	// 	dst4.at<uchar>(y44, x44) = (i % 2) * 255;
+	// }
 
 	Mat dst_final_blur4;
 	medianBlur(dst4, dst_final_blur4, 29);
 	// imshow("dst_final_blur4",dst_final_blur4);
 
-	Mat labels4, stats4, centroids4;
-	int cnt4 = connectedComponentsWithStats(dst_final_blur4, labels4, stats4, centroids4);
+	// Mat labels4, stats4, centroids4;
+	// int cnt4 = connectedComponentsWithStats(dst_final_blur4, labels4, stats4, centroids4);
 
 	Mat dst_4;
 	cvtColor(dst_final_blur4, dst_4, COLOR_GRAY2BGR);
 
-	for (int i = 1; i < cnt4; i++)
-	{
-		int *p = stats4.ptr<int>(i);
-		// rectangle(dst_4, Rect(p[0], p[1], p[2], p[3]), Scalar(0, 0, 255), 2);
-		// cout << "stats1 : " << p[4] << endl;
-		// float theta = (atan((float)p[3] / p[2]) * 180) / PI;
-		float x1 = p[0], y1 = p[1], x2 = p[0] + p[2], y2 = p[1] + p[3];
-		float k1 = ((y2 - y1) / (x2 - x1));
-		float radian1 = atan(k1);
-		float theta_live = (radian1 * 180) / PI;
+	// for (int i = 1; i < cnt4; i++)
+	// {
+	// 	int *p = stats4.ptr<int>(i);
+	// 	// rectangle(dst_4, Rect(p[0], p[1], p[2], p[3]), Scalar(0, 0, 255), 2);
+	// 	// cout << "stats1 : " << p[4] << endl;
+	// 	// float theta = (atan((float)p[3] / p[2]) * 180) / PI;
+	// 	float x1 = p[0], y1 = p[1], x2 = p[0] + p[2], y2 = p[1] + p[3];
+	// 	float k1 = ((y2 - y1) / (x2 - x1));
+	// 	float radian1 = atan(k1);
+	// 	float theta_live = (radian1 * 180) / PI;
 
 		// cout<<"theta: "<<theta<<endl;
-		std_msgs::Float64 ParkingAngle_FRONT_msg;
-		if (p[4] > 5000 && p[4] < 10000) // 8000~20000
+	std_msgs::Float64 ParkingAngle_FRONT_msg;
+		// if (p[4] > 5000 && p[4] < 10000) // 8000~20000
 
-		{
-			rectangle(dst_4, Rect(p[0], p[1], p[2], p[3]), Scalar(0, 0, 255), 2);
-			// cout << "stats1 : " << p[4] << endl;
-			//cout << "p[2]: " << p[2] << " p[3]: " << p[3] << endl;
-			// cout << "theta_live: " << theta << endl;
-			ParkingAngle_FRONT_msg.data = theta_live;
-			parking_level3_angle_pub.publish(ParkingAngle_FRONT_msg);
-			cout << "frontangle" << endl;
-			ROS_INFO("%f", ParkingAngle_FRONT_msg.data);
-			if (theta_live < 9)
-			{
-				cout << "stop change angle!" << endl;
-			}
-		}
-	}
+		// {
+		// 	rectangle(dst_4, Rect(p[0], p[1], p[2], p[3]), Scalar(0, 0, 255), 2);
+		// 	// cout << "stats1 : " << p[4] << endl;
+		// 	//cout << "p[2]: " << p[2] << " p[3]: " << p[3] << endl;
+		// 	// cout << "theta_live: " << theta << endl;
+		// 	ParkingAngle_FRONT_msg.data = theta_live;
+	ParkingAngle_FRONT_msg.data = 0;
+	parking_level3_angle_pub.publish(ParkingAngle_FRONT_msg);
+	// 		cout << "frontangle" << endl;
+	// 		ROS_INFO("%f", ParkingAngle_FRONT_msg.data);
+	// 		if (theta_live < 9)
+	// 		{
+	// 			cout << "stop change angle!" << endl;
+	// 		}
+	// 	}
+	// }
 	// imshow("dst_4", dst_4);
 
 
@@ -480,7 +482,7 @@ int main(int argc, char **argv)
 				encoder = 2;
 
 				//트래킹 위치 선정
-				Rect2d bbox(Point(rec_center.x-10, rec_center.y - 10), Point(rec_center.x + 30, rec_center.y + 10));
+				Rect2d bbox(Point(rec_center.x-40, rec_center.y - 15), Point(rec_center.x + 25, rec_center.y + 15));
 				// rectangle(frame_re, bbox, Scalar( 255, 0, 0 ), 2, 1 );
 
 
@@ -736,7 +738,7 @@ int main(int argc, char **argv)
 				// 각도조건
 				//#################################################################################################//
 
-				if(final_theta <= 45) 
+				if(final_theta <= 41) 
 				{
 					third_level = true;
 					// parking2 = false;
@@ -881,14 +883,14 @@ Mat bird_eyes_view_for_front_camara(Mat img)
 	// warp_src_point[3].x = 635;
 	// warp_src_point[3].y = 120;
 
-	warp_src_point[0].x = 15;
-	warp_src_point[0].y = 320;
-	warp_src_point[1].x = 630;
-	warp_src_point[1].y = 320;
-	warp_src_point[2].x = 220;
-	warp_src_point[2].y = 140;
-	warp_src_point[3].x = 470;
-	warp_src_point[3].y = 140;
+	warp_src_point[0].x = 40;
+	warp_src_point[0].y = 480;
+	warp_src_point[1].x = 600;
+	warp_src_point[1].y = 480;
+	warp_src_point[2].x = 190;
+	warp_src_point[2].y = 170;
+	warp_src_point[3].x = 450;
+	warp_src_point[3].y = 170;
 
 	// warp_dst_point[0].x = 150;
 	// warp_dst_point[0].y = height * 0.8;bird_eyes_view_inverse
@@ -935,14 +937,14 @@ Mat bird_eyes_view_inverse_for_front_camara(Mat img)
 	// warp_src_point[3].x = 635;
 	// warp_src_point[3].y = 120;
 
-	warp_src_point[0].x = 15;
-	warp_src_point[0].y = 320;
-	warp_src_point[1].x = 630;
-	warp_src_point[1].y = 320;
-	warp_src_point[2].x = 220;
-	warp_src_point[2].y = 140;
-	warp_src_point[3].x = 470;
-	warp_src_point[3].y = 140;
+	warp_src_point[0].x = 40;
+	warp_src_point[0].y = 480;
+	warp_src_point[1].x = 600;
+	warp_src_point[1].y = 480;
+	warp_src_point[2].x = 190;
+	warp_src_point[2].y = 170;
+	warp_src_point[3].x = 450;
+	warp_src_point[3].y = 170;
 
 	// warp_dst_point[0].x = 150;
 	// warp_dst_point[0].y = height * 0.8;
@@ -1053,13 +1055,13 @@ Mat mask_filter(Mat img, int _mask_w, int _mask_h, int thresh)
 					 << endl;
 				isStop = 3;
 			}
-			else if (y < 330)
+			else if (y > 330)
 			{
 				cout << "stop line distance : 2M\n"
 					 << endl;
-				isStop = 2;
+				isStop = 1;
 			}
-			else if (y > 400)
+			else if (y > 420)
 			{
 				cout << "stop line!!!!\n"
 					 << endl;

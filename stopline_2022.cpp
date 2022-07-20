@@ -1,15 +1,18 @@
-// K-BUB team, PyoSH retouched
+﻿// K-BUB team, PyoSH retouched
 // preprocessing 
 // 0409 update : 1. RGB_mean -> IMG_mean
 
 
-#include "stopline_func.h"
-#include "stopline_func.cpp"
+#include "Vision_func.h"
+#include "Vision_func.cpp"
 
 using namespace cv;
 using namespace std;
 
 WeAreVision WAV;
+Point ptOld1;
+
+void on_mouse1(int event, int x, int y, int flags, void*);
 
 // --------MAIN-----------------------------------------------------------------------
 int main(int argc, char **argv)
@@ -99,4 +102,15 @@ int main(int argc, char **argv)
 		loop_rate.sleep();
 	}
 	return 0;
+}
+
+void on_mouse1(int event, int x, int y, int flags, void*)
+{
+	switch (event)
+	{
+		case EVENT_LBUTTONDBLCLK:
+            ptOld1 = Point(x, y);
+            cout << x << ", " << y << endl;
+            break;
+	}
 }
