@@ -1,4 +1,12 @@
 #include "StereoVision.h"
+#include "opencv2/opencv.hpp"
+#include <iostream>
+#include <ros/ros.h>
+#include "std_msgs/Bool.h"
+#include "std_msgs/Float64.h"
+#include <image_transport/image_transport.h>
+#include <sstream>
+#include <cv_bridge/cv_bridge.h>
 
 using namespace cv;
 using namespace std;
@@ -25,7 +33,6 @@ ros::Subscriber Parking_level1_sub;
 void parking_cb(const std_msgs::Bool::ConstPtr &msgs)
 {
 	parking1 = msgs->data;
-	cout << " !!!!!!!!! " << endl;
 }
 
 Point ptOld1;
@@ -35,12 +42,11 @@ float camera_values();
 
 
 int main(int argc, char **argv) 
-{
-    
+{   
     // VideoCapture capLeft(2);
     // VideoCapture capRight(4);
-    VideoCapture capLeft("/home/kimtaehyeong/catkin_ws/src/taehyeong/kcity_parking1.mp4");
-    VideoCapture capRight("/home/kimtaehyeong/catkin_ws/src/taehyeong/kcity_parking2.mp4");
+    VideoCapture capLeft("/home/chaehyeon/catkin_ws/src/parking/src/k-city.mp4");
+    VideoCapture capRight("/home/chaehyeon/catkin_ws/src/parking/src/parking_kcity_front1.mp4");
     
     ros::init(argc, argv, "parking_publisher");
 	ros::NodeHandle nh;
@@ -50,66 +56,66 @@ int main(int argc, char **argv)
     ros::Rate loop_rate(10);
     Mat leftFrame, rightFrame;
 
-    capLeft.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
-	capLeft.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
-    capRight.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
-	capRight.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
-
-    StereoVision stereovision(baseline, focal_pixels);
-
-    if (!capLeft.isOpened()) {
-        cout << "Cannot Open Left Camera" << endl;
-        return -1;
-    }
-
-    if (!capRight.isOpened()) {
-        cout << "Cannot Open Right Camera" << endl;
-        return -1;
-    }
-
-    Mat leftMask, rightMask;
-    Mat leftResFrame, rightResFrame;
-
-    Point leftCircle, rightCircle;
-
-    Point2f top_XZ, mid_XZ, bottom_XZ;
-    
-    float left_array[6] = {0,0,0,0,0,0};
-    float right_array[6] = {0,0,0,0,0,0};
 
     while (ros::ok) 
     {
+        capLeft.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
+	    capLeft.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
+        capRight.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
+        capRight.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
+
+        StereoVision stereovision(baseline, focal_pixels);
+
+        if (!capLeft.isOpened()) {
+            cout << "Cannot Open Left Camera" << endl;
+        }
+
+        if (!capRight.isOpened()) {
+            cout << "Cannot Open Right Camera" << endl;
+        }
+
+        Mat leftMask, rightMask;
+        Mat leftResFrame, rightResFrame;
+
+        Point leftCircle, rightCircle;
+
+        Point2f top_XZ, mid_XZ, bottom_XZ;
+            
+        float left_array[6] = {0,0,0,0,0,0};
+        float right_array[6] = {0,0,0,0,0,0};
         capLeft.read(leftFrame);
         capRight.read(rightFrame);
-        
+            
         resize(leftFrame, leftFrame, Size(1280, 720));
         resize(rightFrame, rightFrame, Size(1280, 720));
-
+        
         // stereovision.line_symmetry(leftFrame, 0);
         // stereovision.line_symmetry(rightFrame, 1);
 
-        // Calibration of the frames (640,480)
-        // leftFrame = stereovision.undistortFrame(leftFrame);
-        // rightFrame = stereovision.undistortFrame(rightFrame);
+            // Calibration of the frames (640,480)
+            // leftFrame = stereovision.undistortFrame(leftFrame);
+            // rightFrame = stereovision.undistortFrame(rightFrame);
+            
+            // rectangle(level_one_src, Rect(0, 0, 1280, 100), Scalar(0, 0, 0), -1); //상단 for koreatech
+            // rectangle(level_one_src, Rect(0, 0, 1280, 140), Scalar(0, 0, 0), -1); //for k-citys
         
-        // rectangle(level_one_src, Rect(0, 0, 1280, 100), Scalar(0, 0, 0), -1); //상단 for koreatech
-        // rectangle(level_one_src, Rect(0, 0, 1280, 140), Scalar(0, 0, 0), -1); //for k-citys
-    
-        // Applying HSV-filter
-        leftMask = stereovision.add_HSV_filter(leftFrame, 0);
-        rightMask = stereovision.add_HSV_filter(rightFrame, 1);
-
-        
-        // Frames after applyting HSV-filter mask
-        bitwise_and(leftFrame, leftFrame, leftResFrame, leftMask);
-        bitwise_and(rightFrame, rightFrame, rightResFrame, rightMask);
-
-        imshow("left_mask",leftMask);
-        imshow("right_mask",rightMask);
         
 
         if(parking1 == true)
         {
+            
+        
+            // Applying HSV-filter
+            leftMask = stereovision.add_HSV_filter(leftFrame, 0);
+            rightMask = stereovision.add_HSV_filter(rightFrame, 1);
+
+            
+            // Frames after applyting HSV-filter mask
+            bitwise_and(leftFrame, leftFrame, leftResFrame, leftMask);
+            bitwise_and(rightFrame, rightFrame, rightResFrame, rightMask);
+
+            imshow("left_mask",leftMask);
+            imshow("right_mask",rightMask);
             // Detect Circles - Hough Transforms can be used aswell or some neural network to do object detection
             // leftCircle = stereovision.find_ball(leftMask, leftMask);
             // rightCircle = stereovision.find_ball(rightMask, rightMask);
@@ -167,18 +173,23 @@ int main(int argc, char **argv)
             // setMouseCallback("Left Frame",on_mouse);
             // setMouseCallback("Right Frame",on_mouse);
         }
+        else if(parking1 == false)
+        {
+            cout << "sub fail" << endl;
+        }
+
         if (waitKey(10) == 27)
         {
             break;
             printf("end");
+            
         }
+        // capLeft.release();
+        // capRight.release();
+        ros::spinOnce();
+	    loop_rate.sleep();
     }
-    capLeft.release();
-    capRight.release();
-
-    destroyAllWindows();
-    ros::spinOnce();
-	loop_rate.sleep();
+    
     return 0;
 }
 
