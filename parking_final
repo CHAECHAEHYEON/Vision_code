@@ -70,22 +70,8 @@ Mat StereoVision::find_edge(Mat& frame, int camera) {
 	Mat gray_image;
 	cvtColor(frame, gray_image, CV_RGB2GRAY);
 
-	// imshow("gray_image", gray_image); 
-	GaussianBlur(gray_image,gray_image, Size(5,5),1);
+	GaussianBlur(gray_image,gray_image, Size(3,3),2);
 	// imshow("gau", gray_image);
-	
-	Mat dx, dy;
-	Sobel(gray_image, dx, CV_32FC1, 1, 0);
-	Sobel(gray_image, dy, CV_32FC1, 0, 1);
-
-	Mat fmag, mag;
-	magnitude(dx, dy, fmag);
-	fmag.convertTo(mag, CV_8UC1);
-
-	Mat edge = mag > 100;
-
-	// imshow("edge", edge);
-
 
 	if(camera != 0)
 	{
@@ -95,20 +81,15 @@ Mat StereoVision::find_edge(Mat& frame, int camera) {
 
 	Mat dst = Mat::zeros(frame.size(), CV_8UC1 );
 	
-	Mat dst2 = Mat::zeros(frame.size(), CV_8UC1 );
-	Mat dst3 = Mat::zeros(frame.size(), CV_8UC1 );
-
 	for (int r = 0; r < frame.rows; r++)
 	{
         for (int c = center_x; c < frame.cols-2; c++)
 		{
-			if((gray_image.at<uchar>(r, c+1) + gray_image.at<uchar>(r, c+2) + gray_image.at<uchar>(r, c+3) + gray_image.at<uchar>(r, c+4) + gray_image.at<uchar>(r, c+5))-5*gray_image.at<uchar>(r, c) > 60) // 60
+			if((gray_image.at<uchar>(r, c+1) + gray_image.at<uchar>(r, c+2) + gray_image.at<uchar>(r, c+3) + gray_image.at<uchar>(r, c+4) + gray_image.at<uchar>(r, c+5))-5*gray_image.at<uchar>(r, c) > 80) // 60
 			{
-				// dst.at<uchar>(r, c-2) = 255;
 				dst.at<uchar>(r, c-1) = 255;
 				dst.at<uchar>(r, c) = 255;
 				dst.at<uchar>(r, c+1) = 255;
-				// dst.at<uchar>(r, c+2) = 255;
 			}
         }
     }
@@ -117,7 +98,7 @@ Mat StereoVision::find_edge(Mat& frame, int camera) {
 	{
         for (int c = 0; c < center_x; c++)
 		{
-			if(5*gray_image.at<uchar>(r, c) - (gray_image.at<uchar>(r, c+1) + gray_image.at<uchar>(r, c+2) + gray_image.at<uchar>(r, c+3) + gray_image.at<uchar>(r, c+4) + gray_image.at<uchar>(r, c+5)) > 60) // 60
+			if(5*gray_image.at<uchar>(r, c) - (gray_image.at<uchar>(r, c+1) + gray_image.at<uchar>(r, c+2) + gray_image.at<uchar>(r, c+3) + gray_image.at<uchar>(r, c+4) + gray_image.at<uchar>(r, c+5)) > 80) // 60
 			{
 				dst.at<uchar>(r, c-1) = 255;
 				dst.at<uchar>(r, c) = 255;
@@ -130,13 +111,19 @@ Mat StereoVision::find_edge(Mat& frame, int camera) {
 	{
         for (int r = 0; r < center_y; r++)
 		{
-			if((gray_image.at<uchar>(r+1, c) + gray_image.at<uchar>(r+2, c) + gray_image.at<uchar>(r+3, c) + gray_image.at<uchar>(r+4, c) + gray_image.at<uchar>(r+5, c)) - 5*gray_image.at<uchar>(r, c) > 60) // 60
+			if((gray_image.at<uchar>(r+1, c) + gray_image.at<uchar>(r+2, c) + gray_image.at<uchar>(r+3, c) + gray_image.at<uchar>(r+4, c) + gray_image.at<uchar>(r+5, c)) - 5*gray_image.at<uchar>(r, c) > 80) // 60
 			{
 				dst.at<uchar>(r+5, c-20) = 255;
-				dst.at<uchar>(r+6, c-21) = 255;
-				dst.at<uchar>(r+7, c-22) = 255;
-				dst.at<uchar>(r+8, c-23) = 255;
-				dst.at<uchar>(r+9, c-24) = 255;
+				dst.at<uchar>(r+6, c-20) = 255;
+				dst.at<uchar>(r+7, c-20) = 255;
+				
+				dst.at<uchar>(r+5, c-15) = 255;
+				dst.at<uchar>(r+6, c-15) = 255;
+				dst.at<uchar>(r+7, c-15) = 255;
+				
+				dst.at<uchar>(r+5, c-10) = 255;
+				dst.at<uchar>(r+6, c-10) = 255;
+				dst.at<uchar>(r+7, c-10) = 255;
 			}
       }
     }
@@ -145,108 +132,21 @@ Mat StereoVision::find_edge(Mat& frame, int camera) {
 	{
         for (int r = center_y; r < frame.rows; r++)
 		{
-			if(5*gray_image.at<uchar>(r, c) - (gray_image.at<uchar>(r+1, c) + gray_image.at<uchar>(r+2, c) + gray_image.at<uchar>(r+3, c) + gray_image.at<uchar>(r+4, c) + gray_image.at<uchar>(r+5, c)) > 60) // 60
+			if(5*gray_image.at<uchar>(r, c) - (gray_image.at<uchar>(r+1, c) + gray_image.at<uchar>(r+2, c) + gray_image.at<uchar>(r+3, c) + gray_image.at<uchar>(r+4, c) + gray_image.at<uchar>(r+5, c)) > 80) // 60
 			{
-				dst.at<uchar>(r-10, c) = 255;
-				dst.at<uchar>(r-11, c) = 255;
-				dst.at<uchar>(r-12, c) = 255;
-				dst.at<uchar>(r-13, c) = 255;
-				dst.at<uchar>(r-14, c) = 255;
+				dst.at<uchar>(r-10, c+10) = 255;
+				dst.at<uchar>(r-11, c+10) = 255;
+				dst.at<uchar>(r-12, c+10) = 255;
+
+				dst.at<uchar>(r-10, c+15) = 255;
+				dst.at<uchar>(r-11, c+15) = 255;
+				dst.at<uchar>(r-12, c+15) = 255;
 			}
         }
     }
-//----------------------------------------------------------------------
 
+	// imshow("dst", dst);
 
-	// for (int r = 0; r < frame.rows; r++)
-	// {
-    //     for (int c = 0; c < center_x; c++)
-	// 	{
-	// 		if((5*gray_image.at<uchar>(r, c) - gray_image.at<uchar>(r, c+1) - gray_image.at<uchar>(r, c+2) - gray_image.at<uchar>(r, c+3) - gray_image.at<uchar>(r, c+4) - gray_image.at<uchar>(r, c+5)) > 60) // 60
-	// 		{
-	// 			// dst.at<uchar>(r, c-2) = 255;
-	// 			dst2.at<uchar>(r, c-1) = 255;
-	// 			dst2.at<uchar>(r, c) = 255;
-	// 			dst2.at<uchar>(r, c+1) = 255;
-	// 			// dst.at<uchar>(r, c+2) = 255;
-	// 		}
-    //     }
-    // }
-	// for (int r = 0; r < frame.rows; r++)
-	// {
-    //     for (int c = center_x; c < frame.cols-2; c++)
-	// 	{
-	// 		if((gray_image.at<uchar>(r, c+1) + gray_image.at<uchar>(r, c+2) + gray_image.at<uchar>(r, c+3) + gray_image.at<uchar>(r, c+4) + gray_image.at<uchar>(r, c+5) - 5*gray_image.at<uchar>(r, c)) > 60) // 60
-	// 		{
-	// 			// dst.at<uchar>(r, c-2) = 255;
-	// 			dst2.at<uchar>(r, c-1) = 255;
-	// 			dst2.at<uchar>(r, c) = 255;
-	// 			dst2.at<uchar>(r, c+1) = 255;
-	// 			// dst.at<uchar>(r, c+2) = 255;
-	// 		}
-    //     }
-    // }
-
-	// for (int c = 0; c < frame.cols; c++)
-	// {
-    //     for (int r = 0; r < center_y; r++)
-	// 	{
-	// 		if((5*gray_image.at<uchar>(r, c) - gray_image.at<uchar>(r+1, c) - gray_image.at<uchar>(r+2, c) - gray_image.at<uchar>(r+3, c) - gray_image.at<uchar>(r+4, c) - gray_image.at<uchar>(r+5, c)) > 150) // 60
-	// 		{
-	// 			// dst.at<uchar>(r, c-2) = 255;
-	// 			// dst2.at<uchar>(r-1, c) = 255;
-	// 			dst2.at<uchar>(r, c) = 255;
-	// 			// dst2.at<uchar>(r+1, c) = 255;
-	// 			// dst.at<uchar>(r, c+2) = 255;
-	// 		}
-    //     }
-    // }
-	// for (int c = 0; c < frame.cols; c++)
-	// {
-    //     for (int r = center_y; r < frame.rows-2; r++)
-	// 	{
-	// 		// if((gray_image.at<uchar>(r+31, c) + gray_image.at<uchar>(r+32, c) + gray_image.at<uchar>(r+33, c) + gray_image.at<uchar>(r+34, c) + gray_image.at<uchar>(r+35, c) - 5*gray_image.at<uchar>(r, c)) > 60)
-	// 		// {
-	// 		// 	dst2.at<uchar>(r-1, c) = 0;
-	// 		// 	dst2.at<uchar>(r, c) = 0;
-	// 		// 	dst2.at<uchar>(r+1, c) = 0;
-	// 		// }
-	// 		if((gray_image.at<uchar>(r+1, c) + gray_image.at<uchar>(r+2, c) + gray_image.at<uchar>(r+3, c) + gray_image.at<uchar>(r+4, c) + gray_image.at<uchar>(r+5, c) - 5*gray_image.at<uchar>(r, c)) > 150) // 60
-	// 		{
-	// 			// dst.at<uchar>(r, c-2) = 255;
-	// 			// dst2.at<uchar>(r-1, c) = 255;
-	// 			dst2.at<uchar>(r, c) = 255;
-	// 			// dst2.at<uchar>(r+1, c) = 255;
-	// 			// dst.at<uchar>(r, c+2) = 255;
-	// 		}
-    //     }
-    // }
-
-	// for (int r = 0; r < frame.rows; r++)
-	// {
-    //     for (int c = center_x; c < frame.cols-2; c++)
-	// 	{
-	// 		if((5*gray_image.at<uchar>(r, c) - gray_image.at<uchar>(r, c+1) - gray_image.at<uchar>(r, c+2) - gray_image.at<uchar>(r, c+3) - gray_image.at<uchar>(r, c+4) - gray_image.at<uchar>(r, c+5)) > 40) // 60
-	// 		{
-	// 			dst.at<uchar>(r-3, c-2) = 255;
-	// 			dst.at<uchar>(r-2, c-2) = 255;
-	// 			dst3.at<uchar>(r-1, c) = 255;
-	// 			dst3.at<uchar>(r, c-1) = 255;
-	// 			dst3.at<uchar>(r, c) = 255;
-	// 			dst3.at<uchar>(r, c+1) = 255;
-	// 			dst3.at<uchar>(r+1, c) = 255;
-	// 			dst.at<uchar>(r+2, c) = 255;
-	// 			dst.at<uchar>(r+3, c) = 255;
-	// 		}
-    //     }
-    // }
-
-	imshow("dst", dst);
-	// imshow("dst3", dst3);
-
-	// subtract(dst2, dst3, dst2);
-
-	// imshow("Mi!", dst2);
 	circle(gray_image, Point(center_x,center_y), 10, Scalar(255, 255, 255), 2);
 
 	if(camera == 0)
@@ -258,16 +158,12 @@ Mat StereoVision::find_edge(Mat& frame, int camera) {
 		imshow("right circle mean", gray_image);
 	}
 
-	// subtract(edge, dst, edge);
-	// imshow("Minus", edge);
-
 	dilate(dst, dst, Mat(), Point(-1, -1), 2);
 	// erode(edge, edge, Mat(), Point(-1, -1), 1);
 
-	// imshow("final ", edge);
-
 	return dst;
 }
+
 
 /**
  * @brief 캘리용 함수
@@ -353,7 +249,7 @@ double *StereoVision::find_center(Mat &img, double array[], int camera)
     // contours
     vector<vector<Point>> contours;
     vector<Vec4i> hierarchy;
-    findContours(mask, contours, hierarchy, RETR_LIST, CHAIN_APPROX_SIMPLE);
+    findContours(mask, contours, hierarchy, RETR_LIST, CHAIN_APPROX_SIMPLE); // CHAIN_APPROX_SIMPLE 덕분에 직선을 제외한 곡선부분을 contour 하지 않음음
 
     Scalar color(rand() & 255, rand() & 255, rand() & 255);
 
@@ -386,6 +282,7 @@ double *StereoVision::find_center(Mat &img, double array[], int camera)
 	// }
 
 	int min_y = 1000;
+	Mat drawing11 = Mat::zeros( mask.size(), CV_8UC3 );
 
 	for (size_t i = 0; i < contours.size(); i++)
 	{
@@ -402,20 +299,29 @@ double *StereoVision::find_center(Mat &img, double array[], int camera)
 
 		// cout << nowarea << endl;
 
-		if(vertex > 3 && vertex < 7)
+		vector<vector<Point>> fake_hull;
+        fake_hull.push_back(hull);
+        drawContours(drawing11, fake_hull, 0, Scalar(255, 255, 255), 2, LINE_8);
+
+		if(vertex > 3)
 		{
-			if ((nowarea > 35000) && (nowarea < 300000))		// 일단 25000이었음
+			if ((nowarea > 40000) && (nowarea < 300000))		// 일단 25000이었음
 			{
 				if(p.y < min_y)
 				{
 					min_y = p.y;
 					lrgctridx = i;
-					// cout << " 넓이 : " << nowarea << endl;
+
+					for(i=0; i<hull.size(); i++)
+					{
+						circle(drawing11, Point(hull[i].x, hull[i].y), 10, Scalar(255, 0, 0), -1);
+					}
+					cout << " 넓이 : " << nowarea << endl;
 				}
 			}
 		}
 	}
-
+	// imshow("all contour hull ", drawing11);
 	// cout << "contour size = " << minarea << endl;
 
     if(contours.size() > 0)
@@ -785,4 +691,22 @@ Point StereoVision::back_park(Mat &img, int camera)
     {
         return {bottom_x,bottom_y}; //contour_moment
     }
+}
+
+Scalar StereoVision::IMG_mean(Mat img, int X, int width, int Y, int height, int camera)
+{
+	Mat img_roi = img(Rect(Point(X, Y), Point(X + width, Y + height)));
+	Scalar average = mean(img_roi);
+
+	if(camera == 0)
+	{
+		// imshow("left_roi",img_roi);
+	}
+	else
+	{
+		// imshow("right_roi",img_roi);
+	}
+
+	// std::cout << average << std::endl;
+	return average;
 }
