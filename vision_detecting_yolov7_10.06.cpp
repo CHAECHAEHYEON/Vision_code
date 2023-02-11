@@ -122,7 +122,7 @@ void detections_callback(const vision_msgs::Detection2DArray::ConstPtr &detectio
         
 		if(loop_flag == true)
 		{
-			for(int i = 0; i < detect_length; i++)
+			for(int i = 0; i < (*detections2dArray).detections.size(); i++)
 			{
 				
 				vision_msgs::Detection2D aDetection = detections2dArray->detections[i];
